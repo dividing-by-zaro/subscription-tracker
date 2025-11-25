@@ -518,6 +518,135 @@ td {
   color: var(--text-secondary);
 }
 
+/* React DatePicker Custom Styles */
+.date-picker-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+
+.date-picker-input:focus {
+  border-color: var(--primary-color);
+}
+
+/* Calendar popup styling */
+.react-datepicker {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.react-datepicker__header {
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+.react-datepicker__current-month {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.react-datepicker__day-name {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.react-datepicker__day {
+  color: var(--text-primary);
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.react-datepicker__day:hover {
+  background-color: var(--background);
+}
+
+.react-datepicker__day--selected {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.react-datepicker__day--keyboard-selected {
+  background-color: var(--primary-hover);
+  color: white;
+}
+
+.react-datepicker__day--today {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* Disabled/past dates styling - make them clear but not too aggressive */
+.react-datepicker__day--disabled {
+  color: #94a3b8 !important;
+  background-color: #f8fafc !important;
+  cursor: not-allowed !important;
+  position: relative;
+  text-decoration: line-through;
+  text-decoration-color: #cbd5e1;
+  text-decoration-thickness: 1px;
+  opacity: 0.7;
+}
+
+.react-datepicker__day--disabled:hover {
+  background-color: #f1f5f9 !important;
+  color: #94a3b8 !important;
+}
+
+/* Add tooltip on hover for disabled dates */
+.react-datepicker__day--disabled:hover::after {
+  content: 'Select a date in the future';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1e293b;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  pointer-events: none;
+  text-decoration: none;
+  opacity: 1;
+}
+
+/* Add arrow to tooltip */
+.react-datepicker__day--disabled:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1e293b;
+  z-index: 1000;
+  margin-bottom: -0.25rem;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.react-datepicker__navigation {
+  top: 13px;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: var(--text-secondary);
+}
+
+.react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  border-color: var(--text-primary);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .header-content {

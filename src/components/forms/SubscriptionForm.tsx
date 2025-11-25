@@ -2,6 +2,8 @@ import React, { useState, FormEvent } from 'react';
 import { Subscription, BillingFrequency, Category, SubscriptionStatus, SplitAllocation } from '@types/subscription';
 import { useSubscriptions } from '@contexts/SubscriptionContext';
 import { X, Plus } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface SubscriptionFormProps {
   subscription?: Subscription;
@@ -16,8 +18,8 @@ export function SubscriptionForm({ subscription, onSubmit, onCancel }: Subscript
     amount: subscription?.amount || 0,
     billingFrequency: subscription?.billingFrequency || ('monthly' as BillingFrequency),
     nextBillingDate: subscription?.nextBillingDate
-      ? new Date(subscription.nextBillingDate).toISOString().split('T')[0]
-      : '',
+      ? new Date(subscription.nextBillingDate)
+      : null as Date | null,
     category: subscription?.category || ('other' as Category),
     status: subscription?.status || ('active' as SubscriptionStatus),
     autoRenew: subscription?.autoRenew ?? true,
@@ -94,6 +96,11 @@ export function SubscriptionForm({ subscription, onSubmit, onCancel }: Subscript
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
+    if (!formData.nextBillingDate) {
+      alert('Please select a billing date');
+      return;
+    }
+
     if (splitAllocations.length > 0 && Math.abs(totalPercentage - 100) > 0.01) {
       alert('Split allocations must total 100%');
       return;
@@ -102,7 +109,7 @@ export function SubscriptionForm({ subscription, onSubmit, onCancel }: Subscript
     onSubmit({
       ...formData,
       amount: Number(formData.amount),
-      nextBillingDate: new Date(formData.nextBillingDate),
+      nextBillingDate: formData.nextBillingDate,
       splitAllocations: splitAllocations.length > 0 ? splitAllocations : undefined,
     });
   };
@@ -157,12 +164,16 @@ export function SubscriptionForm({ subscription, onSubmit, onCancel }: Subscript
 
       <div className="form-group">
         <label htmlFor="nextBillingDate">Next Billing Date *</label>
-        <input
-          type="date"
-          id="nextBillingDate"
-          value={formData.nextBillingDate}
-          onChange={(e) => setFormData({ ...formData, nextBillingDate: e.target.value })}
-          required
+        <DatePicker
+          selected={formData.nextBillingDate}
+          onChange={(date) => setFormData({ ...formData, nextBillingDate: date })}
+          minDate={new Date()}
+          dateFormat="MM/dd/yyyy"
+          placeholderText="Select a date"
+          className="date-picker-input"
+          calendarClassName="custom-calendar"
+          showPopperArrow={false}
+          autoComplete="off"
         />
       </div>
 
