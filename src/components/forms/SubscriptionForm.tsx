@@ -28,18 +28,39 @@ export function SubscriptionForm({ subscription, onSubmit, onCancel }: Subscript
     syncEnabled: subscription?.syncEnabled ?? false,
   });
 
+  // Initialize split allocations - default to 100% current user for new subscriptions
+  const getInitialSplitAllocations = (): SplitAllocation[] => {
+    if (subscription?.splitAllocations) {
+      return subscription.splitAllocations;
+    }
+    // For new subscriptions, default to 100% current user
+    const currentUser = familyMembers.find((m) => m.isCurrentUser);
+    if (currentUser) {
+      return [{ familyMemberId: currentUser.id, percentage: 100 }];
+    }
+    return [];
+  };
+
   const [splitAllocations, setSplitAllocations] = useState<SplitAllocation[]>(
-    subscription?.splitAllocations || []
+    getInitialSplitAllocations()
   );
   const [newMemberName, setNewMemberName] = useState('');
   const [showAddMember, setShowAddMember] = useState(false);
 
   const handleAddMember = () => {
     if (newMemberName.trim()) {
-      addFamilyMember(newMemberName.trim());
+      const newMember = addFamilyMember(newMemberName.trim());
       setNewMemberName('');
       setShowAddMember(false);
+      // Automatically add the new member to split allocations
+      handleAddSplitAllocation(newMember.id);
     }
+  };
+
+  const redistributePercentages = (allocations: SplitAllocation[]) => {
+    if (allocations.length === 0) return [];
+    const evenPercentage = 100 / allocations.length;
+    return allocations.map((a) => ({ ...a, percentage: evenPercentage }));
   };
 
   const handleAddSplitAllocation = (familyMemberId: string) => {
@@ -51,11 +72,13 @@ export function SubscriptionForm({ subscription, onSubmit, onCancel }: Subscript
       return;
     }
 
-    setSplitAllocations([...splitAllocations, { familyMemberId, percentage: 0 }]);
+    const newAllocations = [...splitAllocations, { familyMemberId, percentage: 0 }];
+    setSplitAllocations(redistributePercentages(newAllocations));
   };
 
   const handleRemoveSplitAllocation = (familyMemberId: string) => {
-    setSplitAllocations(splitAllocations.filter((a) => a.familyMemberId !== familyMemberId));
+    const newAllocations = splitAllocations.filter((a) => a.familyMemberId !== familyMemberId);
+    setSplitAllocations(redistributePercentages(newAllocations));
   };
 
   const handleUpdatePercentage = (familyMemberId: string, percentage: number) => {
@@ -219,38 +242,139 @@ export function SubscriptionForm({ subscription, onSubmit, onCancel }: Subscript
       </div>
 
       <div className="form-group">
-        <label>Shared Expense Split</label>
-        <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.5rem' }}>
-          Split this expense between family members. Leave empty if not shared.
+        <label>Shared Expense Split (Optional)</label>
+        <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '1rem' }}>
+          Add family members to split this expense. Percentages auto-adjust to total 100%.
         </p>
 
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-          {familyMembers.map((member) => {
-            const allocation = splitAllocations.find((a) => a.familyMemberId === member.id);
-            return (
+        {splitAllocations.length > 0 && (
+          <div style={{ marginBottom: '1rem' }}>
+            {splitAllocations.map((allocation) => {
+              const member = familyMembers.find((m) => m.id === allocation.familyMemberId);
+              const isCurrentUser = member?.isCurrentUser;
+              return (
+                <div
+                  key={allocation.familyMemberId}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '0.75rem',
+                    padding: '0.75rem',
+                    background: isCurrentUser ? '#eef2ff' : '#f9fafb',
+                    borderRadius: '0.5rem',
+                    border: isCurrentUser ? '2px solid #4f46e5' : '1px solid #e5e7eb',
+                  }}
+                >
+                  <span style={{ flex: 1, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {member?.name}
+                    {isCurrentUser && (
+                      <span
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '0.125rem 0.5rem',
+                          background: '#4f46e5',
+                          color: 'white',
+                          borderRadius: '0.25rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        You
+                      </span>
+                    )}
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={allocation.percentage}
+                    onChange={(e) =>
+                      handleUpdatePercentage(allocation.familyMemberId, parseFloat(e.target.value) || 0)
+                    }
+                    style={{
+                      width: '80px',
+                      padding: '0.5rem',
+                      border: '1px solid #ddd',
+                      borderRadius: '0.25rem',
+                    }}
+                  />
+                  <span style={{ width: '20px' }}>%</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSplitAllocation(allocation.familyMemberId)}
+                    style={{
+                      padding: '0.25rem',
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#ef4444',
+                      opacity: isCurrentUser && splitAllocations.length === 1 ? 0.3 : 1,
+                      cursor: isCurrentUser && splitAllocations.length === 1 ? 'not-allowed' : 'pointer',
+                    }}
+                    title={isCurrentUser && splitAllocations.length === 1 ? 'Cannot remove yourself' : 'Remove member'}
+                    disabled={isCurrentUser && splitAllocations.length === 1}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              );
+            })}
+            <div
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.5rem',
+                background: totalPercentage === 100 ? '#d1fae5' : '#fee2e2',
+                borderRadius: '0.25rem',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: totalPercentage === 100 ? '#065f46' : '#991b1b',
+              }}
+            >
+              Total: {totalPercentage.toFixed(2)}%
+              {totalPercentage !== 100 && ' (must equal 100%)'}
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+          {familyMembers
+            .filter((member) => !splitAllocations.find((a) => a.familyMemberId === member.id))
+            .map((member) => (
               <button
                 key={member.id}
                 type="button"
-                onClick={() =>
-                  allocation
-                    ? handleRemoveSplitAllocation(member.id)
-                    : handleAddSplitAllocation(member.id)
-                }
+                onClick={() => handleAddSplitAllocation(member.id)}
                 style={{
                   padding: '0.5rem 1rem',
-                  border: allocation ? '2px solid #4f46e5' : '1px solid #ddd',
+                  border: '1px solid #ddd',
                   borderRadius: '0.5rem',
-                  background: allocation ? '#eef2ff' : 'white',
+                  background: 'white',
                   cursor: 'pointer',
                   fontSize: '0.875rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
                 }}
               >
-                {member.name}
+                + {member.name}
+                {member.isCurrentUser && (
+                  <span
+                    style={{
+                      fontSize: '0.7rem',
+                      padding: '0.1rem 0.4rem',
+                      background: '#e0e7ff',
+                      color: '#4f46e5',
+                      borderRadius: '0.25rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    You
+                  </span>
+                )}
               </button>
-            );
-          })}
+            ))}
 
-          {!showAddMember && (
+          {!showAddMember ? (
             <button
               type="button"
               onClick={() => setShowAddMember(true)}
@@ -268,121 +392,53 @@ export function SubscriptionForm({ subscription, onSubmit, onCancel }: Subscript
               }}
             >
               <Plus size={16} />
-              Add Member
+              Add New Member
             </button>
+          ) : (
+            <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+              <input
+                type="text"
+                value={newMemberName}
+                onChange={(e) => setNewMemberName(e.target.value)}
+                placeholder="Member name"
+                style={{ flex: 1, padding: '0.5rem', border: '1px solid #ddd', borderRadius: '0.25rem' }}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddMember())}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={handleAddMember}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: '#4f46e5',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.25rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddMember(false);
+                  setNewMemberName('');
+                }}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.25rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           )}
         </div>
-
-        {showAddMember && (
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-            <input
-              type="text"
-              value={newMemberName}
-              onChange={(e) => setNewMemberName(e.target.value)}
-              placeholder="Member name"
-              style={{ flex: 1, padding: '0.5rem', border: '1px solid #ddd', borderRadius: '0.25rem' }}
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddMember())}
-            />
-            <button
-              type="button"
-              onClick={handleAddMember}
-              style={{
-                padding: '0.5rem 1rem',
-                background: '#4f46e5',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.25rem',
-                cursor: 'pointer',
-              }}
-            >
-              Add
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowAddMember(false);
-                setNewMemberName('');
-              }}
-              style={{
-                padding: '0.5rem 1rem',
-                background: '#6b7280',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.25rem',
-                cursor: 'pointer',
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-
-        {splitAllocations.length > 0 && (
-          <div style={{ marginTop: '1rem' }}>
-            <div style={{ fontWeight: 500, marginBottom: '0.5rem' }}>
-              Allocation percentages:
-            </div>
-            {splitAllocations.map((allocation) => {
-              const member = familyMembers.find((m) => m.id === allocation.familyMemberId);
-              return (
-                <div
-                  key={allocation.familyMemberId}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  <span style={{ flex: 1 }}>{member?.name}</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={allocation.percentage}
-                    onChange={(e) =>
-                      handleUpdatePercentage(allocation.familyMemberId, parseFloat(e.target.value) || 0)
-                    }
-                    style={{
-                      width: '80px',
-                      padding: '0.5rem',
-                      border: '1px solid #ddd',
-                      borderRadius: '0.25rem',
-                    }}
-                  />
-                  <span>%</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSplitAllocation(allocation.familyMemberId)}
-                    style={{
-                      padding: '0.25rem',
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: '#ef4444',
-                    }}
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-              );
-            })}
-            <div
-              style={{
-                marginTop: '0.5rem',
-                padding: '0.5rem',
-                background: totalPercentage === 100 ? '#d1fae5' : '#fee2e2',
-                borderRadius: '0.25rem',
-                fontSize: '0.875rem',
-                color: totalPercentage === 100 ? '#065f46' : '#991b1b',
-              }}
-            >
-              Total: {totalPercentage.toFixed(2)}%
-              {totalPercentage !== 100 && ' (must equal 100%)'}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="form-actions">

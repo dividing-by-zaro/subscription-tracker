@@ -67,3 +67,20 @@ export function getStatusColor(status: string): string {
   };
   return colors[status] || 'gray';
 }
+
+/**
+ * Get category badge colors
+ */
+export function getCategoryColor(category: string): { bg: string; text: string; border: string } {
+  const colors: Record<string, { bg: string; text: string; border: string }> = {
+    entertainment: { bg: '#fee2e2', text: '#991b1b', border: '#fca5a5' },     // Red
+    utilities: { bg: '#ffedd5', text: '#9a3412', border: '#fdba74' },          // Orange
+    productivity: { bg: '#dbeafe', text: '#1e40af', border: '#93c5fd' },       // Blue
+    'health-fitness': { bg: '#e9d5ff', text: '#6b21a8', border: '#c084fc' },   // Purple
+    education: { bg: '#d1fae5', text: '#065f46', border: '#6ee7b7' },          // Green
+    shopping: { bg: '#fef3c7', text: '#92400e', border: '#fcd34d' },           // Yellow
+    finance: { bg: '#cffafe', text: '#155e75', border: '#67e8f9' },            // Cyan
+    other: { bg: '#f3f4f6', text: '#374151', border: '#d1d5db' },              // Gray
+  };
+  return colors[category] || colors.other;
+}

@@ -66,15 +66,27 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     }
 
     const storedFamilyMembers = localStorage.getItem('familyMembers');
+    let loadedMembers: FamilyMember[] = [];
     if (storedFamilyMembers) {
       try {
         const parsed = JSON.parse(storedFamilyMembers);
-        setFamilyMembers(parsed);
+        loadedMembers = parsed;
       } catch (error) {
         console.error('Failed to parse family members from localStorage:', error);
       }
     }
 
+    // Create default "Me" member if no family members exist
+    if (loadedMembers.length === 0) {
+      const defaultMember: FamilyMember = {
+        id: crypto.randomUUID(),
+        name: 'Me',
+        isCurrentUser: true,
+      };
+      loadedMembers = [defaultMember];
+    }
+
+    setFamilyMembers(loadedMembers);
     setIsLoaded(true);
   }, []);
 

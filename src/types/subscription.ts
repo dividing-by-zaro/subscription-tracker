@@ -14,6 +14,7 @@ export interface FamilyMember {
   id: string;
   name: string;
   avatar?: string;
+  isCurrentUser?: boolean;
 }
 
 export interface SplitAllocation {

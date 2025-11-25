@@ -7,6 +7,7 @@ import {
   getBillingFrequencyLabel,
   getCategoryLabel,
   getStatusColor,
+  getCategoryColor,
 } from '@utils/formatters';
 import { Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useSubscriptions } from '@contexts/SubscriptionContext';
@@ -22,6 +23,7 @@ export function SubscriptionRow({ subscription, onEdit, onDelete }: Subscription
   const [expanded, setExpanded] = useState(false);
 
   const statusColor = getStatusColor(subscription.status);
+  const categoryColors = getCategoryColor(subscription.category);
 
   return (
     <>
@@ -40,8 +42,23 @@ export function SubscriptionRow({ subscription, onEdit, onDelete }: Subscription
                 {subscription.splitAllocations.map((allocation) => {
                   const member = familyMembers.find((m) => m.id === allocation.familyMemberId);
                   return (
-                    <span key={allocation.familyMemberId} style={{ fontSize: '0.875rem' }}>
-                      {member?.name} ({allocation.percentage}%)
+                    <span key={allocation.familyMemberId} style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      {member?.name}
+                      {member?.isCurrentUser && (
+                        <span
+                          style={{
+                            fontSize: '0.65rem',
+                            padding: '0.1rem 0.3rem',
+                            background: '#4f46e5',
+                            color: 'white',
+                            borderRadius: '0.25rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          You
+                        </span>
+                      )}
+                      ({allocation.percentage}%)
                     </span>
                   );
                 })}
@@ -63,7 +80,21 @@ export function SubscriptionRow({ subscription, onEdit, onDelete }: Subscription
           )}
         </td>
         <td>
-          <span className="category-badge">{getCategoryLabel(subscription.category)}</span>
+          <span
+            className="category-badge"
+            style={{
+              backgroundColor: categoryColors.bg,
+              color: categoryColors.text,
+              border: `1px solid ${categoryColors.border}`,
+              padding: '0.25rem 0.75rem',
+              borderRadius: '9999px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              display: 'inline-block',
+            }}
+          >
+            {getCategoryLabel(subscription.category)}
+          </span>
         </td>
         <td>
           <div className="amount-cell">
@@ -126,8 +157,24 @@ export function SubscriptionRow({ subscription, onEdit, onDelete }: Subscription
                       const member = familyMembers.find((m) => m.id === allocation.familyMemberId);
                       const memberAmount = (subscription.amount * allocation.percentage) / 100;
                       return (
-                        <div key={allocation.familyMemberId} style={{ display: 'flex', gap: '1rem' }}>
-                          <span>{member?.name}:</span>
+                        <div key={allocation.familyMemberId} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {member?.name}
+                            {member?.isCurrentUser && (
+                              <span
+                                style={{
+                                  fontSize: '0.7rem',
+                                  padding: '0.1rem 0.4rem',
+                                  background: '#4f46e5',
+                                  color: 'white',
+                                  borderRadius: '0.25rem',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                You
+                              </span>
+                            )}:
+                          </span>
                           <span>{allocation.percentage}% ({formatCurrency(memberAmount)})</span>
                         </div>
                       );
