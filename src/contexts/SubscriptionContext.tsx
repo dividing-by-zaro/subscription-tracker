@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Subscription, FilterOptions, DashboardMetrics } from '@types/subscription';
+import { Subscription, FilterOptions, DashboardMetrics, FamilyMember } from '@types/subscription';
 import { calculateMetrics, filterSubscriptions } from '@utils';
 
 interface SubscriptionContextType {
@@ -7,11 +7,15 @@ interface SubscriptionContextType {
   filteredSubscriptions: Subscription[];
   metrics: DashboardMetrics;
   filters: FilterOptions;
+  familyMembers: FamilyMember[];
   setFilters: (filters: FilterOptions) => void;
   addSubscription: (subscription: Omit<Subscription, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateSubscription: (id: string, subscription: Partial<Subscription>) => void;
   deleteSubscription: (id: string) => void;
   getSubscription: (id: string) => Subscription | undefined;
+  addFamilyMember: (name: string) => FamilyMember;
+  deleteFamilyMember: (id: string) => void;
+  updateFamilyMember: (id: string, name: string) => void;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -30,6 +34,7 @@ interface SubscriptionProviderProps {
 
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     category: 'all',
@@ -41,12 +46,12 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     searchQuery: '',
   });
 
-  // Load subscriptions from localStorage on mount
+  // Load subscriptions and family members from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem('subscriptions');
-    if (stored) {
+    const storedSubscriptions = localStorage.getItem('subscriptions');
+    if (storedSubscriptions) {
       try {
-        const parsed = JSON.parse(stored);
+        const parsed = JSON.parse(storedSubscriptions);
         // Convert date strings back to Date objects
         const subscriptionsWithDates = parsed.map((sub: Subscription) => ({
           ...sub,
@@ -59,6 +64,17 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         console.error('Failed to parse subscriptions from localStorage:', error);
       }
     }
+
+    const storedFamilyMembers = localStorage.getItem('familyMembers');
+    if (storedFamilyMembers) {
+      try {
+        const parsed = JSON.parse(storedFamilyMembers);
+        setFamilyMembers(parsed);
+      } catch (error) {
+        console.error('Failed to parse family members from localStorage:', error);
+      }
+    }
+
     setIsLoaded(true);
   }, []);
 
@@ -68,6 +84,13 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
     }
   }, [subscriptions, isLoaded]);
+
+  // Save family members to localStorage whenever they change (after initial load)
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('familyMembers', JSON.stringify(familyMembers));
+    }
+  }, [familyMembers, isLoaded]);
 
   const addSubscription = (
     subscription: Omit<Subscription, 'id' | 'createdAt' | 'updatedAt'>
@@ -103,6 +126,25 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     return subscriptions.find((sub) => sub.id === id);
   };
 
+  const addFamilyMember = (name: string): FamilyMember => {
+    const newMember: FamilyMember = {
+      id: crypto.randomUUID(),
+      name,
+    };
+    setFamilyMembers((prev) => [...prev, newMember]);
+    return newMember;
+  };
+
+  const deleteFamilyMember = (id: string) => {
+    setFamilyMembers((prev) => prev.filter((member) => member.id !== id));
+  };
+
+  const updateFamilyMember = (id: string, name: string) => {
+    setFamilyMembers((prev) =>
+      prev.map((member) => (member.id === id ? { ...member, name } : member))
+    );
+  };
+
   const filteredSubscriptions = filterSubscriptions(subscriptions, filters);
   const metrics = calculateMetrics(subscriptions);
 
@@ -111,11 +153,15 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     filteredSubscriptions,
     metrics,
     filters,
+    familyMembers,
     setFilters,
     addSubscription,
     updateSubscription,
     deleteSubscription,
     getSubscription,
+    addFamilyMember,
+    deleteFamilyMember,
+    updateFamilyMember,
   };
 
   return (

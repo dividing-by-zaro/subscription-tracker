@@ -9,6 +9,7 @@ import {
   getStatusColor,
 } from '@utils/formatters';
 import { Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useSubscriptions } from '@contexts/SubscriptionContext';
 
 interface SubscriptionRowProps {
   subscription: Subscription;
@@ -17,6 +18,7 @@ interface SubscriptionRowProps {
 }
 
 export function SubscriptionRow({ subscription, onEdit, onDelete }: SubscriptionRowProps) {
+  const { familyMembers } = useSubscriptions();
   const [expanded, setExpanded] = useState(false);
 
   const statusColor = getStatusColor(subscription.status);
@@ -32,7 +34,20 @@ export function SubscriptionRow({ subscription, onEdit, onDelete }: Subscription
           </div>
         </td>
         <td>
-          {subscription.familyMember ? (
+          {subscription.splitAllocations && subscription.splitAllocations.length > 0 ? (
+            <div className="family-member">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                {subscription.splitAllocations.map((allocation) => {
+                  const member = familyMembers.find((m) => m.id === allocation.familyMemberId);
+                  return (
+                    <span key={allocation.familyMemberId} style={{ fontSize: '0.875rem' }}>
+                      {member?.name} ({allocation.percentage}%)
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          ) : subscription.familyMember ? (
             <div className="family-member">
               {subscription.familyMember.avatar && (
                 <img
@@ -103,6 +118,23 @@ export function SubscriptionRow({ subscription, onEdit, onDelete }: Subscription
         <tr className="subscription-details">
           <td colSpan={8}>
             <div className="details-content">
+              {subscription.splitAllocations && subscription.splitAllocations.length > 0 && (
+                <div className="detail-section">
+                  <strong>Expense Split:</strong>
+                  <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    {subscription.splitAllocations.map((allocation) => {
+                      const member = familyMembers.find((m) => m.id === allocation.familyMemberId);
+                      const memberAmount = (subscription.amount * allocation.percentage) / 100;
+                      return (
+                        <div key={allocation.familyMemberId} style={{ display: 'flex', gap: '1rem' }}>
+                          <span>{member?.name}:</span>
+                          <span>{allocation.percentage}% ({formatCurrency(memberAmount)})</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               {subscription.notes && (
                 <div className="detail-section">
                   <strong>Notes:</strong> {subscription.notes}

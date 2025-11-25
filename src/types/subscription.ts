@@ -16,6 +16,11 @@ export interface FamilyMember {
   avatar?: string;
 }
 
+export interface SplitAllocation {
+  familyMemberId: string;
+  percentage: number;
+}
+
 export interface Subscription {
   id: string;
   serviceName: string;
@@ -24,6 +29,7 @@ export interface Subscription {
   nextBillingDate: Date;
   category: Category;
   familyMember?: FamilyMember;
+  splitAllocations?: SplitAllocation[];
   status: SubscriptionStatus;
   paymentMethod?: string;
   autoRenew: boolean;
