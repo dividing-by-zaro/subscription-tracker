@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSubscriptions } from '@contexts/SubscriptionContext';
 import { Header } from '@components/layout/Header';
 import { MetricsGrid } from '@components/dashboard/MetricsGrid';
+import { SpendingBreakdown } from '@components/dashboard/SpendingBreakdown';
 import { SearchBar } from '@components/ui/SearchBar';
 import { FilterBar } from '@components/ui/FilterBar';
 import { SubscriptionTable } from '@components/subscriptions/SubscriptionTable';
@@ -10,6 +11,7 @@ import { Subscription } from '@types/subscription';
 
 export function Dashboard() {
   const {
+    subscriptions,
     filteredSubscriptions,
     metrics,
     filters,
@@ -55,6 +57,8 @@ export function Dashboard() {
 
       <main className="main-content">
         <MetricsGrid metrics={metrics} />
+
+        <SpendingBreakdown subscriptions={subscriptions} />
 
         <div className="subscriptions-section">
           <div className="filters-container">

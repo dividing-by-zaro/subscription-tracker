@@ -113,6 +113,121 @@ body {
   color: var(--text-secondary);
 }
 
+/* Spending Breakdown Card */
+.spending-breakdown-card {
+  background: var(--surface);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+
+.spending-breakdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.spending-breakdown-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.spending-breakdown-icon {
+  color: var(--primary-color);
+  width: 24px;
+  height: 24px;
+}
+
+.spending-breakdown-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.spending-breakdown-bar-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 0 0.5rem;
+}
+
+.spending-breakdown-bar {
+  display: flex;
+  height: 28px;
+  width: 100%;
+  border-radius: 9999px;
+  box-shadow: var(--shadow-md);
+}
+
+.spending-breakdown-segment {
+  height: 100%;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.spending-breakdown-segment:hover {
+  filter: brightness(1.15);
+  transform: scaleY(1.08);
+  border: none !important;
+}
+
+.spending-breakdown-tooltip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  z-index: 1000;
+  animation: tooltipFadeIn 0.15s ease-out;
+  min-width: 220px;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.spending-breakdown-tooltip-category {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 0.75rem;
+}
+
+.spending-breakdown-tooltip-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+
+.spending-breakdown-tooltip-percentage {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.spending-breakdown-empty {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
 /* Subscriptions Section */
 .subscriptions-section {
   background: var(--surface);
