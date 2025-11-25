@@ -30,6 +30,7 @@ interface SubscriptionProviderProps {
 
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     category: 'all',
     status: 'all',
@@ -58,12 +59,15 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
         console.error('Failed to parse subscriptions from localStorage:', error);
       }
     }
+    setIsLoaded(true);
   }, []);
 
-  // Save subscriptions to localStorage whenever they change
+  // Save subscriptions to localStorage whenever they change (after initial load)
   useEffect(() => {
-    localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
-  }, [subscriptions]);
+    if (isLoaded) {
+      localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+    }
+  }, [subscriptions, isLoaded]);
 
   const addSubscription = (
     subscription: Omit<Subscription, 'id' | 'createdAt' | 'updatedAt'>
