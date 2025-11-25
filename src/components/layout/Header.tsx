@@ -1,10 +1,16 @@
 import React from 'react';
+import { TabBar } from '@components/ui/TabBar';
+import { CustomView } from '@types/customView';
 
 interface HeaderProps {
   onAddSubscription: () => void;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+  customViews: CustomView[];
+  onDeleteView: (viewId: string) => void;
 }
 
-export function Header({ onAddSubscription }: HeaderProps) {
+export function Header({ onAddSubscription, activeTab, onTabChange, customViews, onDeleteView }: HeaderProps) {
   return (
     <header className="header">
       <div className="header-content">
@@ -13,6 +19,12 @@ export function Header({ onAddSubscription }: HeaderProps) {
           + Add Subscription
         </button>
       </div>
+      <TabBar
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+        customViews={customViews}
+        onDeleteView={onDeleteView}
+      />
     </header>
   );
 }
