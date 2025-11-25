@@ -8,15 +8,28 @@ afterEach(() => {
   localStorage.clear();
 });
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
+// Create a proper localStorage mock
+class LocalStorageMock {
+  private store: Record<string, string> = {};
 
-global.localStorage = localStorageMock as any;
+  getItem(key: string): string | null {
+    return this.store[key] || null;
+  }
+
+  setItem(key: string, value: string): void {
+    this.store[key] = value;
+  }
+
+  removeItem(key: string): void {
+    delete this.store[key];
+  }
+
+  clear(): void {
+    this.store = {};
+  }
+}
+
+global.localStorage = new LocalStorageMock() as any;
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

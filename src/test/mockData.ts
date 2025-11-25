@@ -1,8 +1,14 @@
-import { Subscription, FamilyMember } from '@types/subscription';
+import { Subscription, FamilyMember, SplitAllocation } from '@types/subscription';
 
 export const mockFamilyMembers: FamilyMember[] = [
-  { id: '1', name: 'John Doe', avatar: 'https://example.com/john.jpg' },
-  { id: '2', name: 'Jane Doe', avatar: 'https://example.com/jane.jpg' },
+  { id: '1', name: 'Me', avatar: 'https://example.com/me.jpg', isCurrentUser: true },
+  { id: '2', name: 'John Doe', avatar: 'https://example.com/john.jpg' },
+  { id: '3', name: 'Jane Doe', avatar: 'https://example.com/jane.jpg' },
+];
+
+export const mockSplitAllocations: SplitAllocation[] = [
+  { familyMemberId: '1', percentage: 60 },
+  { familyMemberId: '2', percentage: 40 },
 ];
 
 export const mockSubscriptions: Subscription[] = [
